@@ -10,6 +10,10 @@ setup(
     description="Simple regex-based lexer/parser for inline markup",
     author="Michal Krenek (Mikos)",
     author_email="m.krenek@gmail.com",
+    maintainer=", ".join((
+        "Jakob Ackermann <das7pad@outlook.com>",
+    )),
+    maintainer_email="das7pad@outlook.com",
     url="https://github.com/xmikos/reparser",
     license="MIT",
     py_modules=["reparser"],
