@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-import sys
-
 from setuptools import setup
 
 install_requires = []
-if sys.version_info < (3, 4):
-    install_requires.append('enum34')
 
 setup(
     name="ReParser",
