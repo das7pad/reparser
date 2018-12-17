@@ -7,7 +7,7 @@ group_regex = re.compile(r'\?P<(.+?)>')
 
 class Segment:
     """Segment of parsed text"""
-    def __init__(self, text, token=None, match=None, **params):
+    def __init__(self, text='', token=None, match=None, **params):
         self.text = text
         self.params = params
         if token and match:
@@ -28,7 +28,7 @@ class Segment:
 
 class Token:
     """Definition of token which should be parsed from text"""
-    def __init__(self, name, pattern_start, pattern_end=None, text=None, skip=False, **params):
+    def __init__(self, name, pattern_start, pattern_end=None, skip=False, **params):
         self.name = name
         self.group_start = '{}_start'.format(self.name)
         if not pattern_end:
@@ -45,7 +45,6 @@ class Token:
                 group=self.group_start,
             )
             self.pattern_end = self.modify_pattern(pattern_end, self.group_end)
-        self.text = text
         self.skip = skip
         self.params = params
 
@@ -167,16 +166,20 @@ class Parser:
                 # Append text preceding matched token
                 start_pos = match.start(group)
                 if start_pos > last_pos:
-                    yield Segment(self.postprocess(text[last_pos:start_pos]), **params)
+                    single_params = params.copy()
+                    single_params['text'] = self.postprocess(
+                        text[last_pos:start_pos]
+                    )
+                    yield Segment(**single_params)
 
                 # Actions specific for start token or single token
                 if match_type == MatchType.start:
                     token_stack.append(token)
                 elif match_type == MatchType.single:
                     single_params = params.copy()
+                    single_params['text'] = match.group(group)
                     single_params.update(token.params)
-                    single_text = token.text if token.text is not None else match.group(group)
-                    yield Segment(single_text, token=token, match=match, **single_params)
+                    yield Segment(token=token, match=match, **single_params)
 
                 # Move last position pointer to the end of matched token
                 last_pos = match.end(group)
@@ -184,4 +187,5 @@ class Parser:
         # Append anything that's left
         if last_pos < len(text):
             params = self.get_params(token_stack)
-            yield Segment(self.postprocess(text[last_pos:]), **params)
+            params['text'] = self.postprocess(text[last_pos:])
+            yield Segment(**params)
