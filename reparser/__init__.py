@@ -125,6 +125,10 @@ class Parser:
 
     def remove_token(self, token_stack, token):
         """Remove last occurance of token from stack"""
+        if token_stack[-1] is token:
+            token_stack.pop(-1)
+            return True
+
         token_stack.reverse()
         try:
             token_stack.remove(token)
