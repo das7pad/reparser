@@ -91,7 +91,8 @@ class Parser:
         """Postprocess text after parsing (should be reimplemented by subclass)"""
         return text
 
-    def build_regex(self, tokens):
+    @staticmethod
+    def build_regex(tokens):
         """Build compound regex from list of tokens"""
         patterns = []
         for token in tokens:
