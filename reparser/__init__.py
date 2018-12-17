@@ -132,11 +132,12 @@ class Parser:
         token_stack.reverse()
         try:
             token_stack.remove(token)
-            retval = True
         except ValueError:
-            retval = False
-        token_stack.reverse()
-        return retval
+            return False
+        else:
+            return True
+        finally:
+            token_stack.reverse()
 
     def parse(self, text):
         """Parse text to obtain list of Segments"""
