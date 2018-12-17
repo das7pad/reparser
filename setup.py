@@ -16,7 +16,7 @@ setup(
     maintainer_email="das7pad@outlook.com",
     url="https://github.com/xmikos/reparser",
     license="MIT",
-    py_modules=["reparser"],
+    packages=["reparser"],
     install_requires=install_requires,
     classifiers=[
         "Development Status :: 4 - Beta",
