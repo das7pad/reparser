@@ -100,14 +100,16 @@ class Parser:
                 patterns.append(token.pattern_end)
         return re.compile('|'.join(patterns), re.DOTALL)
 
-    def build_groups(self, tokens):
+    @staticmethod
+    def build_groups(tokens):
         """Build dict of groups from list of tokens"""
         groups = {}
         for token in tokens:
-            match_type = MatchType.start if token.group_end else MatchType.single
-            groups[token.group_start] = (token, match_type)
             if token.group_end:
+                groups[token.group_start] = (token, MatchType.start)
                 groups[token.group_end] = (token, MatchType.end)
+            else:
+                groups[token.group_start] = (token, MatchType.single)
         return groups
 
     def get_matched_token(self, match):
