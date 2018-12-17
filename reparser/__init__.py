@@ -112,11 +112,9 @@ class Parser:
 
     def get_matched_token(self, match):
         """Find which token has been matched by compound regex"""
-        match_groupdict = match.groupdict()
-        for group in self.groups:
-            if match_groupdict[group] is not None:
-                token, match_type = self.groups[group]
-                return (token, match_type, group)
+        group = match.lastgroup
+        token, match_type = self.groups[group]
+        return token, match_type, group
 
     def get_params(self, token_stack):
         """Get params from stack of tokens"""
