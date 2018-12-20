@@ -1,4 +1,5 @@
-import re, enum
+import enum
+import re
 
 
 # Precompiled regex for matching named groups in regex patterns
