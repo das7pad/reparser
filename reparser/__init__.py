@@ -1,3 +1,5 @@
+"""Simple regex-based lexer/parser for inline markup"""
+
 import enum
 import re
 from typing import (
