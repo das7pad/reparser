@@ -1,5 +1,16 @@
 import enum
 import re
+from typing import (
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Match,
+    Optional,
+    Pattern,
+    Tuple,
+    Union,
+)
 
 
 # Precompiled regex for matching named groups in regex patterns
@@ -8,19 +19,33 @@ group_regex = re.compile(r'\?P<(.+?)>')
 
 class Segment:
     """Segment of parsed text"""
-    def __init__(self, text='', token=None, match=None, **params):
+    def __init__(
+        self,
+        text: 'Union[MatchGroup, str]',
+        token: 'Optional[Token]' = None,
+        match: 'Optional[Match]' = None,
+        **params
+    ):
         self.text = text
         self.params = params
         if token and match:
             self.update_text(token, match)
             self.update_params(token, match)
 
-    def update_text(self, token, match):
+    def update_text(
+        self,
+        token: 'Token',
+        match: 'Match',
+    ):
         """Update text from results of regex match"""
         if isinstance(self.text, MatchGroup):
             self.text = self.text.get_group_value(token, match)
 
-    def update_params(self, token, match):
+    def update_params(
+        self,
+        token: 'Token',
+        match: 'Match',
+    ):
         """Update dict of params from results of regex match"""
         for k, v in self.params.items():
             if isinstance(v, MatchGroup):
@@ -29,7 +54,14 @@ class Segment:
 
 class Token:
     """Definition of token which should be parsed from text"""
-    def __init__(self, name, pattern_start, pattern_end=None, skip=False, **params):
+    def __init__(
+        self,
+        name: 'str',
+        pattern_start: 'str',
+        pattern_end: 'Optional[str]' = None,
+        skip: 'Optional[bool]' = False,
+        **params
+    ):
         self.name = name
         self.group_start = '{}_start'.format(self.name)
         if not pattern_end:
@@ -49,7 +81,11 @@ class Token:
         self.skip = skip
         self.params = params
 
-    def modify_pattern(self, pattern, group):
+    def modify_pattern(
+        self,
+        pattern: 'str',
+        group: 'str',
+    ) -> 'str':
         """Rename groups in regex pattern and enclose it in named group"""
         pattern = group_regex.sub(r'?P<{}_\1>'.format(self.name), pattern)
         return r'(?P<{}>{})'.format(group, pattern)
@@ -57,11 +93,19 @@ class Token:
 
 class MatchGroup:
     """Name of regex group which should be replaced by its value when token is parsed"""
-    def __init__(self, group, func=None):
+    def __init__(
+        self,
+        group: 'str',
+        func: 'Optional[Callable]' = None,
+    ):
         self.group = group
         self.func = func
 
-    def get_group_value(self, token, match):
+    def get_group_value(
+        self,
+        token: 'Token',
+        match: 'Match',
+    ) -> 'str':
         """Return value of regex match for the specified group"""
         try:
             value = match.group('{}_{}'.format(token.name, self.group))
@@ -79,21 +123,32 @@ class MatchType(enum.Enum):
 
 class Parser:
     """Simple regex-based lexer/parser for inline markup"""
-    def __init__(self, tokens):
+    def __init__(
+        self,
+        tokens: 'List[Token]',
+    ):
         self.tokens = tokens
         self.regex = self.build_regex(tokens)
         self.groups = self.build_groups(tokens)
 
-    def preprocess(self, text):
+    def preprocess(
+        self,
+        text: 'str',
+    ) -> 'str':
         """Preprocess text before parsing (should be reimplemented by subclass)"""
         return text
 
-    def postprocess(self, text):
+    def postprocess(
+        self,
+        text: 'str',
+    ) -> 'str':
         """Postprocess text after parsing (should be reimplemented by subclass)"""
         return text
 
     @staticmethod
-    def build_regex(tokens):
+    def build_regex(
+        tokens: 'List[Token]',
+    ) -> 'Pattern':
         """Build compound regex from list of tokens"""
         patterns = []
         for token in tokens:
@@ -103,7 +158,9 @@ class Parser:
         return re.compile('|'.join(patterns), re.DOTALL)
 
     @staticmethod
-    def build_groups(tokens):
+    def build_groups(
+        tokens: 'List[Token]',
+    ) -> 'Dict[str, Tuple[Token, MatchType]]':
         """Build dict of groups from list of tokens"""
         groups = {}
         for token in tokens:
@@ -114,20 +171,30 @@ class Parser:
                 groups[token.group_start] = (token, MatchType.single)
         return groups
 
-    def get_matched_token(self, match):
+    def get_matched_token(
+        self,
+        match: 'Match',
+    ) -> 'Tuple[Token, MatchType, str]':
         """Find which token has been matched by compound regex"""
         group = match.lastgroup
         token, match_type = self.groups[group]
         return token, match_type, group
 
-    def get_params(self, token_stack):
+    def get_params(
+        self,
+        token_stack: 'List[Token]',
+    ) -> 'dict':
         """Get params from stack of tokens"""
         params = {}
         for token in token_stack:
             params.update(token.params)
         return params
 
-    def remove_token(self, token_stack, token):
+    def remove_token(
+        self,
+        token_stack: 'List[Token]',
+        token: 'Token',
+    ) -> 'bool':
         """Remove last occurrence of token from stack"""
         if token_stack[-1] is token:
             token_stack.pop(-1)
@@ -143,7 +210,10 @@ class Parser:
         finally:
             token_stack.reverse()
 
-    def parse(self, text):
+    def parse(
+        self,
+        text: 'str',
+    ) -> 'Generator[Segment]':
         """Parse text to obtain list of Segments"""
         text = self.preprocess(text)
         token_stack = []
