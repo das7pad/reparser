@@ -16,7 +16,7 @@ from typing import (
 
 
 # Precompiled regex for matching named groups in regex patterns
-group_regex = re.compile(r'\?P<(.+?)>')
+GROUP_REGEX = re.compile(r'\?P<(.+?)>')
 
 
 class Segment:
@@ -49,9 +49,9 @@ class Segment:
         match: 'Match',
     ):
         """Update dict of params from results of regex match"""
-        for k, v in self.params.items():
-            if isinstance(v, MatchGroup):
-                self.params[k] = v.get_group_value(token, match)
+        for key, match_group in self.params.items():
+            if isinstance(match_group, MatchGroup):
+                self.params[key] = match_group.get_group_value(token, match)
 
 
 class Token:
@@ -89,7 +89,7 @@ class Token:
         group: 'str',
     ) -> 'str':
         """Rename groups in regex pattern and enclose it in named group"""
-        pattern = group_regex.sub(r'?P<{}_\1>'.format(self.name), pattern)
+        pattern = GROUP_REGEX.sub(r'?P<{}_\1>'.format(self.name), pattern)
         return r'(?P<{}>{})'.format(group, pattern)
 
 
