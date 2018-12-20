@@ -101,7 +101,7 @@ class MatchGroup:
         func: 'Optional[Callable]' = None,
     ):
         self.group = group
-        self.func = func
+        self.func = func if callable(func) else None
 
     def get_group_value(
         self,
@@ -112,8 +112,9 @@ class MatchGroup:
         try:
             value = match.group('{}_{}'.format(token.name, self.group))
         except IndexError:
+            # downstream error: invalid nested groups
             value = ''
-        return self.func(value) if callable(self.func) else value
+        return value if self.func is None else self.func(value)
 
 
 class MatchType(enum.Enum):
