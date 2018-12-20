@@ -247,12 +247,12 @@ class Parser:
             # Find which token has been matched by regex
             token, match_type, group = self.get_matched_token(match)
 
-            # Get params from stack of tokens
-            params = token_stack.get_params()
-
             # Should we skip interpreting tokens?
             if token_stack.skip_token(token, match_type):
                 continue
+
+            # Get params from stack of tokens
+            params = token_stack.get_params()
 
             # Check for end token first
             if match_type == MatchType.end:
