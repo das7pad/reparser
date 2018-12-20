@@ -66,3 +66,25 @@ def test_example():
         ('.', {})
     ]
     assert expected == actual
+
+
+def test_skipping():
+    text = ('Hello `**not bold**` world!\n'
+            'You can **try `*this*` awesome** `[link](www.eff.org)`.')
+
+    segments = get_parser().parse(text)
+    actual = [(segment.text, segment.params) for segment in segments]
+    expected = [
+        ('Hello ', {}),
+        ('**not bold**', {}),
+        (' world!', {}),
+        ('\n', {'segment_type': 'LINE_BREAK'}),
+        ('You can ', {}),
+        ('try ', {'is_bold': True}),
+        ('*this*', {'is_bold': True}),
+        (' awesome', {'is_bold': True}),
+        (' ', {}),
+        ('[link](www.eff.org)', {}),
+        ('.', {})
+    ]
+    assert expected == actual

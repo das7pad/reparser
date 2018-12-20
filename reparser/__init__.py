@@ -123,6 +123,56 @@ class MatchType(enum.Enum):
     single = 3
 
 
+class TokenStack:
+    """Storage for tokens during parsing"""
+    def __init__(self):
+        self.__data = []
+
+    def get_params(self):
+        """Get params from stack of tokens"""
+        params = {}
+        for token in self.__data:
+            params.update(token.params)
+        return params
+
+    def remove_token(self, token):
+        """Remove last occurrence of token from stack"""
+        if self.__data[-1] is token:
+            self.__data.pop(-1)
+            return True
+
+        # downstream error: imbalanced start/end token
+        self.__data.reverse()
+        try:
+            self.__data.remove(token)
+        except ValueError:
+            return False
+        else:
+            return True
+        finally:
+            self.__data.reverse()
+
+    def add_token(self, token):
+        """Add a token to the stack"""
+        self.__data.append(token)
+
+    def skip_token(
+        self,
+        token: 'Token',
+        match_type: 'MatchType',
+    ):
+        """logic for skipping tokens inside a skip-section"""
+        if not self.__data:
+            return False
+
+        if self.__data[-1].skip:
+            if self.__data[-1] is token:
+                return match_type != MatchType.end
+            return True
+
+        return False
+
+
 class Parser:
     """Simple regex-based lexer/parser for inline markup"""
     def __init__(
@@ -182,43 +232,13 @@ class Parser:
         token, match_type = self.groups[group]
         return token, match_type, group
 
-    def get_params(
-        self,
-        token_stack: 'List[Token]',
-    ) -> 'dict':
-        """Get params from stack of tokens"""
-        params = {}
-        for token in token_stack:
-            params.update(token.params)
-        return params
-
-    def remove_token(
-        self,
-        token_stack: 'List[Token]',
-        token: 'Token',
-    ) -> 'bool':
-        """Remove last occurrence of token from stack"""
-        if token_stack[-1] is token:
-            token_stack.pop(-1)
-            return True
-
-        token_stack.reverse()
-        try:
-            token_stack.remove(token)
-        except ValueError:
-            return False
-        else:
-            return True
-        finally:
-            token_stack.reverse()
-
     def parse(
         self,
         text: 'str',
     ) -> 'Generator[Segment]':
         """Parse text to obtain list of Segments"""
         text = self.preprocess(text)
-        token_stack = []
+        token_stack = TokenStack()
         last_pos = 0
 
         # Iterate through all matched tokens
@@ -227,44 +247,41 @@ class Parser:
             token, match_type, group = self.get_matched_token(match)
 
             # Get params from stack of tokens
-            params = self.get_params(token_stack)
+            params = token_stack.get_params()
 
             # Should we skip interpreting tokens?
-            skip = token_stack[-1].skip if token_stack else False
+            if token_stack.skip_token(token, match_type):
+                continue
 
             # Check for end token first
             if match_type == MatchType.end:
-                if not skip or token_stack[-1] == token:
-                    removed = self.remove_token(token_stack, token)
-                    if removed:
-                        skip = False
-                    else:
-                        skip = True
+                if not token_stack.remove_token(token):
+                    # downstream error: matching start token not found
+                    continue
 
-            if not skip:
-                # Append text preceding matched token
-                start_pos = match.start(group)
-                if start_pos > last_pos:
-                    single_params = params.copy()
-                    single_params['text'] = self.postprocess(
-                        text[last_pos:start_pos]
-                    )
-                    yield Segment(**single_params)
+            # Append text preceding matched token
+            start_pos = match.start(group)
+            if start_pos > last_pos:
+                single_params = params.copy()
+                single_params['text'] = self.postprocess(
+                    text[last_pos:start_pos]
+                )
+                yield Segment(**single_params)
 
-                # Actions specific for start token or single token
-                if match_type == MatchType.start:
-                    token_stack.append(token)
-                elif match_type == MatchType.single:
-                    single_params = params.copy()
-                    single_params['text'] = match.group(group)
-                    single_params.update(token.params)
-                    yield Segment(token=token, match=match, **single_params)
+            # Actions specific for start token or single token
+            if match_type == MatchType.start:
+                token_stack.add_token(token)
+            elif match_type == MatchType.single:
+                single_params = params.copy()
+                single_params['text'] = match.group(group)
+                single_params.update(token.params)
+                yield Segment(token=token, match=match, **single_params)
 
-                # Move last position pointer to the end of matched token
-                last_pos = match.end(group)
+            # Move last position pointer to the end of matched token
+            last_pos = match.end(group)
 
         # Append anything that's left
         if last_pos < len(text):
-            params = self.get_params(token_stack)
+            params = token_stack.get_params()
             params['text'] = self.postprocess(text[last_pos:])
             yield Segment(**params)
