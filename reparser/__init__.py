@@ -1,5 +1,6 @@
 """Simple regex-based lexer/parser for inline markup"""
 
+import abc
 import enum
 import re
 from typing import (
@@ -174,7 +175,7 @@ class TokenStack:
         return False
 
 
-class Parser:
+class BaseParser(metaclass=abc.ABCMeta):
     """Simple regex-based lexer/parser for inline markup"""
     def __init__(
         self,
@@ -184,19 +185,19 @@ class Parser:
         self.regex = self.build_regex(tokens)
         self.groups = self.build_groups(tokens)
 
+    @abc.abstractmethod
     def preprocess(
         self,
         text: 'str',
     ) -> 'str':
-        """Preprocess text before parsing (should be reimplemented by subclass)"""
-        return text
+        """Preprocess text before parsing"""
 
+    @abc.abstractmethod
     def postprocess(
         self,
         text: 'str',
     ) -> 'str':
-        """Postprocess text after parsing (should be reimplemented by subclass)"""
-        return text
+        """Postprocess text after parsing"""
 
     @staticmethod
     def build_regex(
@@ -286,3 +287,20 @@ class Parser:
             params = token_stack.get_params()
             params['text'] = self.postprocess(text[last_pos:])
             yield Segment(**params)
+
+
+class Parser(BaseParser):
+    """Parser without preprocess and without postprocess handler"""
+    def preprocess(
+        self,
+        text: 'str',
+    ) -> 'str':
+        """Preprocess text before parsing"""
+        return text
+
+    def postprocess(
+        self,
+        text: 'str',
+    ) -> 'str':
+        """Postprocess text after parsing"""
+        return text
