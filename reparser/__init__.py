@@ -78,19 +78,15 @@ class Token:
     ):
         self.name = name
         self.group_start = '{}_start'.format(self.name)
+        self.pattern_start = self.modify_pattern(
+            pattern=pattern_start,
+            group=self.group_start,
+        )
         if not pattern_end:
             self.group_end = None
-            self.pattern_start = self.modify_pattern(
-                pattern=pattern_start,
-                group=self.group_start,
-            )
             self.pattern_end = None
         else:
             self.group_end = '{}_end'.format(self.name)
-            self.pattern_start = self.modify_pattern(
-                pattern=pattern_start + '(?=.+?%s)' % pattern_end,
-                group=self.group_start,
-            )
             self.pattern_end = self.modify_pattern(pattern_end, self.group_end)
         self.skip = skip
         self.params = params
