@@ -1,22 +1,20 @@
-ReParser
-========
+import re
+from reparser import (
+    Parser,
+    Token,
+    MatchGroup,
+)
 
-Simple regex-based lexer/parser for inline markup
+from .common import (
+    get_segments,
+)
+from .data import (
+    MARKDOWN_TEXT_EXAMPLE,
+    MARKDOWN_SERIALIZED_SEGMENTS_EXAMPLE,
+)
 
-Requirements
-------------
 
-- Python 3
-
-Usage
------
-
-Example::
-
-    import re
-    from pprint import pprint
-    from reparser import Parser, Token, MatchGroup
-
+def get_parser():
     boundary_chars = r'\s`!()\[\]{{}};:\'".,<>?«»“”‘’*_~='
     b_left = r'(?:(?<=[' + boundary_chars + r'])|(?<=^))'  # Lookbehind
     b_right = r'(?:(?=[' + boundary_chars + r'])|(?=$))'   # Lookahead
@@ -29,8 +27,8 @@ Example::
     url_proto_regex = re.compile(r'(?i)^[a-z][\w-]+:/{1,3}')
 
     def markdown(tag):
-        """Return sequence of start and end regex patterns for simple Markdown tag"""
-        return (markdown_start.format(tag=tag), markdown_end.format(tag=tag))
+        """Return sequence of start and end regex patterns for a Markdown tag"""
+        return markdown_start.format(tag=tag), markdown_end.format(tag=tag)
 
     def url_complete(url):
         """If URL doesn't start with protocol, prepend it with http://"""
@@ -50,23 +48,10 @@ Example::
         Token('br', newline, text='\n', segment_type="LINE_BREAK")
     ]
 
-    parser = Parser(tokens)
-    text = ('Hello **bold** world!\n'
-            'You can **try *this* awesome** [link](www.eff.org).')
+    return Parser(tokens)
 
-    segments = parser.parse(text)
-    pprint([(segment.text, segment.params) for segment in segments])
 
-Output::
-
-    [('Hello ', {}),
-     ('bold', {'is_bold': True}),
-     (' world!', {}),
-     ('\n', {'segment_type': 'LINE_BREAK'}),
-     ('You can ', {}),
-     ('try ', {'is_bold': True}),
-     ('this', {'is_bold': True, 'is_italic': True}),
-     (' awesome', {'is_bold': True}),
-     (' ', {}),
-     ('link', {'link_target': 'http://www.eff.org'}),
-     ('.', {})]
+def test_example():
+    actual = get_segments(MARKDOWN_TEXT_EXAMPLE, get_parser())
+    expected = MARKDOWN_SERIALIZED_SEGMENTS_EXAMPLE
+    assert expected == actual

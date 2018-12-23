@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-import sys
-
 from setuptools import setup
 
 install_requires = []
-if sys.version_info < (3, 4):
-    install_requires.append('enum34')
 
 setup(
     name="ReParser",
@@ -14,9 +10,13 @@ setup(
     description="Simple regex-based lexer/parser for inline markup",
     author="Michal Krenek (Mikos)",
     author_email="m.krenek@gmail.com",
+    maintainer=", ".join((
+        "Jakob Ackermann <das7pad@outlook.com>",
+    )),
+    maintainer_email="das7pad@outlook.com",
     url="https://github.com/xmikos/reparser",
     license="MIT",
-    py_modules=["reparser"],
+    packages=["reparser"],
     install_requires=install_requires,
     classifiers=[
         "Development Status :: 4 - Beta",
