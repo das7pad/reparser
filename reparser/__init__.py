@@ -221,6 +221,13 @@ class BaseParser(metaclass=abc.ABCMeta):
     ) -> 'str':
         """Postprocess text after parsing"""
 
+    @abc.abstractmethod
+    def postprocess_skipped(
+        self,
+        text: 'str',
+    ) -> 'str':
+        """Postprocess skipped text after parsing"""
+
     @staticmethod
     def build_regex(
         tokens: 'List[Token]',
@@ -291,9 +298,12 @@ class BaseParser(metaclass=abc.ABCMeta):
             start_pos = match.start(group)
             if start_pos > last_pos:
                 single_params = params.copy()
-                single_params['text'] = self.postprocess(
-                    text[last_pos:start_pos]
-                )
+                segment_text = text[last_pos:start_pos]
+                if token.skip:
+                    segment_text = self.postprocess_skipped(segment_text)
+                else:
+                    segment_text = self.postprocess(segment_text)
+                single_params['text'] = segment_text
                 yield Segment(**single_params)
 
             # Actions specific for start token or single token
@@ -329,4 +339,11 @@ class Parser(BaseParser):
         text: 'str',
     ) -> 'str':
         """Postprocess text after parsing"""
+        return text
+
+    def postprocess_skipped(
+        self,
+        text: 'str',
+    ) -> 'str':
+        """Postprocess skipped text after parsing"""
         return text

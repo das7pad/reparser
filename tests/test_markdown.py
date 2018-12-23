@@ -95,6 +95,22 @@ def test_single_skip():
     assert expected == actual
 
 
+def test_whitespace_skip():
+    parser = MarkdownParser([
+        MarkdownTag(r'\*', is_bold=True),
+        MarkdownTag(r'`', skip=True),
+    ])
+    text = 'pre `*skip  this*` post'
+    expected = [
+        ('pre ', {}),
+        ('*skip  this*', {}),
+        (' post', {}),
+    ]
+    actual = get_segments(text, parser)
+
+    assert expected == actual
+
+
 def test_example():
     actual = get_segments(MARKDOWN_TEXT_EXAMPLE, get_parser())
     expected = MARKDOWN_SERIALIZED_SEGMENTS_EXAMPLE
