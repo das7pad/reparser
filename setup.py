@@ -6,7 +6,7 @@ install_requires = []
 
 setup(
     name="ReParser",
-    version="1.4.3",
+    version="2.0.0-das7pad",
     description="Simple regex-based lexer/parser for inline markup",
     author="Michal Krenek (Mikos)",
     author_email="m.krenek@gmail.com",
