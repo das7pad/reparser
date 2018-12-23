@@ -1,6 +1,7 @@
 """Markdown Parser"""
 
 import abc
+import re
 from typing import (  # pylint:disable=unused-import
     List,
     Match,
@@ -35,6 +36,7 @@ MARKDOWN_SKIP_START = (
     r'(?:(?!(?P=skip_tag)))'
     r'(?=.+?(?:(?<!\\))(?P=skip_tag))'
 )
+RE_CLEAN_WHITESPACE = re.compile(' +')
 
 
 class MarkdownTag:
@@ -179,4 +181,10 @@ class MarkdownBaseParser(BaseParser, metaclass=abc.ABCMeta):
 
 
 class MarkdownParser(Parser, MarkdownBaseParser):
-    """Markdown parser without preprocessing and without postprocessing"""
+    """Markdown parser with postprocessing"""
+
+    def postprocess(
+        self,
+        text: 'str',
+    )-> 'str':
+        return RE_CLEAN_WHITESPACE.sub(' ', text)

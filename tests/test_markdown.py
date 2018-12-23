@@ -64,6 +64,21 @@ def test_single_bold():
     assert expected == actual
 
 
+def test_whitespace():
+    parser = MarkdownParser([
+        MarkdownTag(r'\*\*', is_bold=True),
+    ])
+    text = 'pre  **BOLD  TEXT**  post'
+    expected = [
+        ('pre ', {}),
+        ('BOLD TEXT', {'is_bold': True}),
+        (' post', {}),
+    ]
+    actual = get_segments(text, parser)
+
+    assert expected == actual
+
+
 def test_single_skip():
     parser = MarkdownParser([
         MarkdownTag(r'\*', is_bold=True),
