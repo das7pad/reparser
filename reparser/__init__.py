@@ -28,7 +28,8 @@ from typing import (
 
 
 # Precompiled regex for matching named groups in regex patterns
-GROUP_REGEX = re.compile(r'\?P<(.+?)>')
+GROUP_REGEX = GROUP_DEF = re.compile(r'\(\?P<(.+?)>(.+?)\)')
+GROUP_REFERENCE = re.compile(r'\(\?P=(.+?)\)')
 
 
 class Segment:
@@ -97,7 +98,14 @@ class Token:
         group: 'str',
     ) -> 'str':
         """Rename groups in regex pattern and enclose it in named group"""
-        pattern = GROUP_REGEX.sub(r'?P<{}_\1>'.format(self.name), pattern)
+        pattern = GROUP_REGEX.sub(
+            r'(?P<{}_\1>\2)'.format(self.name),
+            pattern
+        )
+        pattern = GROUP_REFERENCE.sub(
+            r'(?P={}_\1)'.format(self.name),
+            pattern
+        )
         return r'(?P<{}>{})'.format(group, pattern)
 
 
