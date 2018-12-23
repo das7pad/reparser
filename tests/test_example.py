@@ -8,6 +8,10 @@ from reparser import (
 from .common import (
     get_segments,
 )
+from .data import (
+    MARKDOWN_TEXT_EXAMPLE,
+    MARKDOWN_SERIALIZED_SEGMENTS_EXAMPLE,
+)
 
 
 def get_parser():
@@ -48,21 +52,6 @@ def get_parser():
 
 
 def test_example():
-    text = ('Hello **bold** world!\n'
-            'You can **try *this* awesome** [link](www.eff.org).')
-
-    actual = get_segments(text, get_parser())
-    expected = [
-        ('Hello ', {}),
-        ('bold', {'is_bold': True}),
-        (' world!', {}),
-        ('\n', {'segment_type': 'LINE_BREAK'}),
-        ('You can ', {}),
-        ('try ', {'is_bold': True}),
-        ('this', {'is_bold': True, 'is_italic': True}),
-        (' awesome', {'is_bold': True}),
-        (' ', {}),
-        ('link', {'link_target': 'http://www.eff.org'}),
-        ('.', {})
-    ]
+    actual = get_segments(MARKDOWN_TEXT_EXAMPLE, get_parser())
+    expected = MARKDOWN_SERIALIZED_SEGMENTS_EXAMPLE
     assert expected == actual
