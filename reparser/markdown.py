@@ -45,7 +45,7 @@ class MarkdownTag:
         self,
         char: 'str',
         skip: 'bool' = False,
-        **params,
+        **params
     ):
         self.char = char
         self.skip = skip
