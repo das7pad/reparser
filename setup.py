@@ -14,7 +14,7 @@ setup(
         "Jakob Ackermann <das7pad@outlook.com>",
     )),
     maintainer_email="das7pad@outlook.com",
-    url="https://github.com/xmikos/reparser",
+    url="https://github.com/das7pad/reparser",
     license="MIT",
     packages=["reparser"],
     install_requires=install_requires,
