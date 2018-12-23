@@ -176,6 +176,10 @@ class TokenStack:
         """Add a token to the stack"""
         self.__data.append(token)
 
+    def get_last_token(self) -> 'Token':
+        """Return the last Token from the stack"""
+        return self.__data[-1]
+
     def skip_token(
         self,
         token: 'Token',
@@ -246,6 +250,7 @@ class BaseParser(metaclass=abc.ABCMeta):
     def get_matched_token(
         self,
         match: 'Match',
+        token_stack: 'TokenStack',  # pylint: disable=unused-argument
     ) -> 'Tuple[Token, MatchType, str]':
         """Find which token has been matched by compound regex"""
         group = match.lastgroup
@@ -264,7 +269,10 @@ class BaseParser(metaclass=abc.ABCMeta):
         # Iterate through all matched tokens
         for match in self.regex.finditer(text):
             # Find which token has been matched by regex
-            token, match_type, group = self.get_matched_token(match)
+            token, match_type, group = self.get_matched_token(
+                match=match,
+                token_stack=token_stack,
+            )
 
             # Should we skip interpreting tokens?
             if token_stack.skip_token(token, match_type):
