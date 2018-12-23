@@ -33,9 +33,6 @@ def get_parser():
         Token('b2',   *markdown(r'__'),     is_bold=True),
         Token('i1',   *markdown(r'\*'),     is_italic=True),
         Token('i2',   *markdown(r'_'),      is_italic=True),
-        Token('pre3', *markdown(r'```'),    skip=True),
-        Token('pre2', *markdown(r'``'),     skip=True),
-        Token('pre1', *markdown(r'`'),      skip=True),
         Token('s',    *markdown(r'~~'),     is_strikethrough=True),
         Token('u',    *markdown(r'=='),     is_underline=True),
         Token('link', markdown_link, text=MatchGroup('link'),
@@ -63,28 +60,6 @@ def test_example():
         (' awesome', {'is_bold': True}),
         (' ', {}),
         ('link', {'link_target': 'http://www.eff.org'}),
-        ('.', {})
-    ]
-    assert expected == actual
-
-
-def test_skipping():
-    text = ('Hello `**not bold**` world!\n'
-            'You can **try `*this*` awesome** `[link](www.eff.org)`.')
-
-    segments = get_parser().parse(text)
-    actual = [(segment.text, segment.params) for segment in segments]
-    expected = [
-        ('Hello ', {}),
-        ('**not bold**', {}),
-        (' world!', {}),
-        ('\n', {'segment_type': 'LINE_BREAK'}),
-        ('You can ', {}),
-        ('try ', {'is_bold': True}),
-        ('*this*', {'is_bold': True}),
-        (' awesome', {'is_bold': True}),
-        (' ', {}),
-        ('[link](www.eff.org)', {}),
         ('.', {})
     ]
     assert expected == actual
