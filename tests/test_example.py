@@ -5,6 +5,10 @@ from reparser import (
     MatchGroup,
 )
 
+from .common import (
+    get_segments,
+)
+
 
 def get_parser():
     boundary_chars = r'\s`!()\[\]{{}};:\'".,<>?«»“”‘’*_~='
@@ -47,8 +51,7 @@ def test_example():
     text = ('Hello **bold** world!\n'
             'You can **try *this* awesome** [link](www.eff.org).')
 
-    segments = get_parser().parse(text)
-    actual = [(segment.text, segment.params) for segment in segments]
+    actual = get_segments(text, get_parser())
     expected = [
         ('Hello ', {}),
         ('bold', {'is_bold': True}),
