@@ -154,6 +154,9 @@ class TokenStack:
 
     def remove_token(self, token):
         """Remove last occurrence of token from stack"""
+        if not self.__data:
+            # downstream error: start token not matched
+            return False
         if self.__data[-1] is token:
             self.__data.pop(-1)
             return True
